@@ -1,15 +1,21 @@
 package actors
 
-import akka.actor.Actor
+import javax.inject.{Inject, Named}
 
-class SensorActor extends Actor {
+import akka.actor.{Actor, ActorRef}
+
+class SensorActor @Inject()(@Named("influxdb-actor") influxDbActor: ActorRef) extends Actor {
 
   import SensorActor._
 
-  override def receive: Receive = {
-    case Tick => println("tick")
+  private var lastReading: Option[Measurement] = None
 
-    case Read => println("measurements")
+  override def receive: Receive = {
+    case Tick =>
+      println("reading data from sensor")
+      influxDbActor ! InfluxDbActor.Measurement(1, 12.13f, 0.67f)
+
+    case Read => lastReading
   }
 }
 
@@ -19,6 +25,6 @@ object SensorActor {
 
   case object Read
 
-  case class Measurements(s: String)
+  case class Measurement(timestamp: Int, temperature: Float, humidity: Float)
 
 }
