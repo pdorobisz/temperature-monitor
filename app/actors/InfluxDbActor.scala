@@ -14,14 +14,18 @@ class InfluxDbActor @Inject()(config: Configuration)(implicit ec: ExecutionConte
 
   import InfluxDbActor._
 
+  private val influxDbHost = config.get[String]("app.influxDb.host")
+  private val influxDbPort = config.get[Int]("app.influxDb.port")
+  private val influxDbDatabase = config.get[String]("app.influxDb.database")
+
   override def receive: Receive = {
     case Measurement(timestamp, temperature, humidity) =>
       writeToInfluxDb(timestamp, temperature, humidity)
   }
 
   private def writeToInfluxDb(timestamp: Long, temperature: Float, humidity: Float) = {
-    val influxDb = InfluxDB.connect(config.get[String]("app.influxDb.host"), config.get[Int]("app.influxDb.port"))
-    val database = influxDb.selectDatabase(config.get[String]("app.influxDb.database"))
+    val influxDb = InfluxDB.connect(influxDbHost, influxDbPort)
+    val database = influxDb.selectDatabase(influxDbDatabase)
     val point = Point("temperature-humidity")
       .addTag("sensor", "sensor1")
       .addField("tmp", temperature)

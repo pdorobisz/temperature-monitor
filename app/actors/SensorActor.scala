@@ -3,21 +3,44 @@ package actors
 import javax.inject.{Inject, Named}
 
 import akka.actor.{Actor, ActorRef}
+import play.api.{Configuration, Logger}
 
-class SensorActor @Inject()(@Named("influxdb-actor") influxDbActor: ActorRef) extends Actor {
+import scala.util.{Failure, Success, Try}
+
+class SensorActor @Inject()(config: Configuration, @Named("influxdb-actor") influxDbActor: ActorRef) extends Actor {
 
   import SensorActor._
 
+  import sys.process._
+
   private var lastReading: Option[Measurement] = None
+  private val sensorCommand = config.get[String]("app.sensor.command")
 
   override def receive: Receive = {
     case Tick =>
-      println("reading data from sensor")
-      val m = Measurement(System.currentTimeMillis(), 23.6f, 0.67f)
-      lastReading = Some(m)
-      influxDbActor ! InfluxDbActor.Measurement(m.timestamp, m.temperature, m.humidity)
-
+      readSensor().foreach { m =>
+        lastReading = Some(m)
+        influxDbActor ! InfluxDbActor.Measurement(m.timestamp, m.temperature, m.humidity)
+      }
     case Read => sender ! lastReading
+  }
+
+  private def readSensor(): Option[Measurement] = Try(sensorCommand.!!) match {
+    case Failure(e) =>
+      Logger.error(s"failed to execute sensor command: $sensorCommand", e)
+      None
+    case Success(value) if value.isEmpty =>
+      Logger.warn("sensor not available")
+      None
+    case Success(value) => Try {
+      val tmp :: hum :: Nil = value.split(' ').toList
+      val m = Measurement(System.currentTimeMillis(), tmp.toFloat, hum.toFloat)
+      Logger.debug(s"read from sensor: $m")
+      Some(m)
+    }.recoverWith { case _ =>
+      Logger.error(s"sensor command returned invalid response: $value")
+      Success(None)
+    }.get
   }
 }
 
