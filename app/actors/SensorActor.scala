@@ -13,9 +13,11 @@ class SensorActor @Inject()(@Named("influxdb-actor") influxDbActor: ActorRef) ex
   override def receive: Receive = {
     case Tick =>
       println("reading data from sensor")
-      influxDbActor ! InfluxDbActor.Measurement(1, 12.13f, 0.67f)
+      val m = Measurement(System.currentTimeMillis(), 23.6f, 0.67f)
+      lastReading = Some(m)
+      influxDbActor ! InfluxDbActor.Measurement(m.timestamp, m.temperature, m.humidity)
 
-    case Read => lastReading
+    case Read => sender ! lastReading
   }
 }
 
@@ -25,6 +27,6 @@ object SensorActor {
 
   case object Read
 
-  case class Measurement(timestamp: Int, temperature: Float, humidity: Float)
+  case class Measurement(timestamp: Long, temperature: Float, humidity: Float)
 
 }

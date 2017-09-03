@@ -1,24 +1,27 @@
 package controllers
 
 import javax.inject._
-import play.api._
+
+import actors.SensorActor
+import actors.SensorActor.Measurement
+import akka.actor.ActorRef
+import akka.pattern.ask
+import akka.util.Timeout
 import play.api.mvc._
 
-/**
- * This controller creates an `Action` to handle HTTP requests to the
- * application's home page.
- */
-@Singleton
-class HomeController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
-  /**
-   * Create an Action to render an HTML page.
-   *
-   * The configuration in the `routes` file means that this method
-   * will be called when the application receives a `GET` request with
-   * a path of `/`.
-   */
-  def index() = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.index())
+@Singleton
+class HomeController @Inject()(cc: ControllerComponents, @Named("sensor-actor") sensorActor: ActorRef)(implicit ec: ExecutionContext)
+  extends AbstractController(cc) {
+
+  implicit val timeout: Timeout = 5.seconds
+
+  def index = Action.async {
+    (sensorActor ? SensorActor.Read).mapTo[Option[Measurement]].map { m =>
+      val s = m.map(m => s"time: ${m.timestamp}, temperature: ${m.temperature}, humidity: ${m.humidity}").getOrElse("data not available yet")
+      Ok(views.html.index(s))
+    }
   }
 }
