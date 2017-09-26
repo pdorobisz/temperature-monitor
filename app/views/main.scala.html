@@ -4,7 +4,7 @@
  * two arguments, a `String` for the title of the page and an `Html`
  * object to insert into the body of the page.
  *@
-@(title: String)(content: Html)
+@(title: String)(content: Html)(implicit r: Request[_])
 
 <!DOCTYPE html>
 <html lang="en">
@@ -15,7 +15,7 @@
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
 
     </head>
-    <body>
+    <body data-ws-url="@routes.HomeController.ws.webSocketURL()">
         @* And here's where we render the `Html` object containing
          * the page content. *@
         @content

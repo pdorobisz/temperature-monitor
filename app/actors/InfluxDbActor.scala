@@ -2,6 +2,7 @@ package actors
 
 import javax.inject.Inject
 
+import actors.SensorActor.Measurement
 import akka.actor.Actor
 import com.paulgoldbaum.influxdbclient.Parameter.Precision
 import com.paulgoldbaum.influxdbclient.{InfluxDB, Point}
@@ -12,11 +13,11 @@ import scala.util.{Failure, Success}
 
 class InfluxDbActor @Inject()(config: Configuration)(implicit ec: ExecutionContext) extends Actor {
 
-  import InfluxDbActor._
-
   private val influxDbHost = config.get[String]("app.influxDb.host")
   private val influxDbPort = config.get[Int]("app.influxDb.port")
   private val influxDbDatabase = config.get[String]("app.influxDb.database")
+
+  override def preStart: Unit = context.system.eventStream.subscribe(self, classOf[Measurement])
 
   override def receive: Receive = {
     case Measurement(timestamp, temperature, humidity) =>
@@ -43,10 +44,4 @@ class InfluxDbActor @Inject()(config: Configuration)(implicit ec: ExecutionConte
     }
     f
   }
-}
-
-object InfluxDbActor {
-
-  case class Measurement(timestamp: Long, temperature: Float, humidity: Float)
-
 }

@@ -2,26 +2,40 @@ package controllers
 
 import javax.inject._
 
-import actors.SensorActor
 import actors.SensorActor.Measurement
-import akka.actor.ActorRef
+import actors.{SensorActor, WebSocketActor}
+import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
+import akka.stream.Materializer
 import akka.util.Timeout
+import play.api.libs.json.Json
+import play.api.libs.streams.ActorFlow
+import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
+
 @Singleton
-class HomeController @Inject()(cc: ControllerComponents, @Named("sensor-actor") sensorActor: ActorRef)(implicit ec: ExecutionContext)
+class HomeController @Inject()(cc: ControllerComponents, @Named("sensor-actor") sensorActor: ActorRef)
+                              (implicit ec: ExecutionContext, system: ActorSystem, mat: Materializer)
   extends AbstractController(cc) {
 
-  implicit val timeout: Timeout = 5.seconds
+  private implicit val outEventFormat = Json.format[Measurement]
+  private implicit val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[String, Measurement]
+  private implicit val timeout: Timeout = 5.seconds
 
-  def index = Action.async {
+  def index: Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
     (sensorActor ? SensorActor.Read).mapTo[Option[Measurement]].map { m =>
       val s = m.map(m => s"time: ${m.timestamp}, temperature: ${m.temperature}, humidity: ${m.humidity}").getOrElse("data not available yet")
       Ok(views.html.index(s))
+    }
+  }
+
+  def ws: WebSocket = WebSocket.accept[String, Measurement] { _ =>
+    ActorFlow.actorRef { out =>
+      WebSocketActor.props(out)
     }
   }
 }

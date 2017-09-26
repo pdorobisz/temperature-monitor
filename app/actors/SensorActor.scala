@@ -1,13 +1,13 @@
 package actors
 
-import javax.inject.{Inject, Named}
+import javax.inject.Inject
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.Actor
 import play.api.{Configuration, Logger}
 
 import scala.util.{Failure, Success, Try}
 
-class SensorActor @Inject()(config: Configuration, @Named("influxdb-actor") influxDbActor: ActorRef) extends Actor {
+class SensorActor @Inject()(config: Configuration) extends Actor {
 
   import SensorActor._
 
@@ -18,9 +18,9 @@ class SensorActor @Inject()(config: Configuration, @Named("influxdb-actor") infl
 
   override def receive: Receive = {
     case Tick =>
-      readSensor().foreach { m =>
-        lastReading = Some(m)
-        influxDbActor ! InfluxDbActor.Measurement(m.timestamp, m.temperature, m.humidity)
+      readSensor().foreach { measurement =>
+        lastReading = Some(measurement)
+        context.system.eventStream.publish(measurement)
       }
     case Read => sender ! lastReading
   }
