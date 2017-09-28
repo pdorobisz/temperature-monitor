@@ -1,30 +1,43 @@
 package actors
 
-import actors.SensorActor.Measurement
+import actors.SensorActor.{Measurement, Read}
 import akka.actor.{Actor, ActorRef, Props}
+import akka.pattern.{ask, pipe}
+import akka.util.Timeout
 import play.api.Logger
 
-class WebSocketActor(out: ActorRef) extends Actor {
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+
+class WebSocketActor(id: String, sensorActor: ActorRef, out: ActorRef)(implicit ec: ExecutionContext) extends Actor {
+
+  private implicit val timeout: Timeout = 5.seconds
 
   override def preStart: Unit = {
     context.system.eventStream.subscribe(self, classOf[Measurement])
-    Logger.debug("webSocket actor started")
+    Logger.debug(s"webSocket actor $id started")
   }
 
   override def postStop(): Unit = {
-    Logger.debug("webSocket actor stopped")
+    Logger.debug(s"webSocket actor $id stopped")
     super.postStop()
   }
 
   override def receive: Receive = {
     case m: Measurement =>
+      println(m)
       out ! m
-    case m: String =>
-      println("got: " + m)
-      out ! s"$m DONE"
+    case WebSocketActor.ClientCommand("GET_LATEST_MEASUREMENT") =>
+      val future: Future[Option[Measurement]] = (sensorActor ? Read).mapTo[Option[Measurement]]
+
+      future.map(_.get) pipeTo out
   }
 }
 
 object WebSocketActor {
-  def props(out: ActorRef) = Props(new WebSocketActor(out))
+
+  def props(id: String, sensorActor: ActorRef, out: ActorRef, ec: ExecutionContext) = Props(new WebSocketActor(id, sensorActor, out)(ec))
+
+  case class ClientCommand(command: String)
+
 }
