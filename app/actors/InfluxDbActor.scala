@@ -17,7 +17,8 @@ class InfluxDbActor @Inject()(config: Configuration)(implicit ec: ExecutionConte
   private val influxDbPort = config.get[Int]("app.influxDb.port")
   private val influxDbDatabase = config.get[String]("app.influxDb.database")
 
-  override def preStart: Unit = context.system.eventStream.subscribe(self, classOf[Measurement])
+  override def preStart: Unit = if (config.get[Boolean]("app.influxDb.enable"))
+    context.system.eventStream.subscribe(self, classOf[Measurement])
 
   override def receive: Receive = {
     case Measurement(timestamp, temperature, humidity) =>
