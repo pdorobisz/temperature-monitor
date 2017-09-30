@@ -3,7 +3,7 @@ organization := "pdorobisz"
 
 version := "1.0"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, DebianPlugin)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, JavaAppPackaging, SystemVPlugin)
 
 scalaVersion := "2.12.3"
 
