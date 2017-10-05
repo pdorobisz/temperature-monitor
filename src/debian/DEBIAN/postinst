@@ -1,0 +1,8 @@
+${{header}}
+${{control-functions}}
+
+addGroup ${{daemon_group}} "${{daemon_group_gid}}"
+addUser ${{daemon_user}} "${{daemon_user_uid}}" ${{daemon_group}} "${{app_name}} daemon-user" "${{daemon_shell}}"
+adduser ${{daemon_user}} gpio
+
+${{chown-paths}}

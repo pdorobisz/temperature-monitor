@@ -1,0 +1,7 @@
+# Setting JAVA_OPTS
+# -----------------
+# you can use this instead of the application.ini as well
+# JAVA_OPTS="-Dpidfile.path=/var/run/${{app_name}}/play.pid $JAVA_OPTS"
+
+# For rpm/systemv you need to set the PIDFILE env variable as well
+PIDFILE="/var/run/${{app_name}}/play.pid"
