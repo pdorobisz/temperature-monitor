@@ -34,9 +34,6 @@ javaOptions in Universal ++= Seq(
   // Use separate configuration file for production environment
   s"-Dconfig.file=/usr/share/${packageName.value}/conf/production.conf",
 
-  // Use separate logger configuration file for production environment
-  s"-Dlogger.file=/usr/share/${packageName.value}/conf/logback-production.xml",
-
   s"-Dapp.sensor.command=/usr/share/${packageName.value}/bin/sensor.sh"
 )
 
