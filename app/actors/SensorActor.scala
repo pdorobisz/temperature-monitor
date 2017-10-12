@@ -14,7 +14,10 @@ class SensorActor @Inject()(config: Configuration) extends Actor {
   import sys.process._
 
   private var lastReading: Option[Measurement] = None
-  private val sensorCommand = config.get[String]("app.sensor.command")
+  private val sensorCommand = "%s%s %s".format(
+    config.getOptional[String]("app.home").map(_ + "/bin/").getOrElse(""),
+    config.get[String]("app.sensor.command"),
+    config.get[String]("app.sensor.pin"))
 
   override def receive: Receive = {
     case Tick =>
@@ -33,7 +36,7 @@ class SensorActor @Inject()(config: Configuration) extends Actor {
       Logger.warn("sensor not available")
       None
     case Success(value) => Try {
-      val tmp :: hum :: Nil = value.split(' ').toList
+      val tmp :: hum :: Nil = value.trim().split(' ').toList
       val m = Measurement(System.currentTimeMillis(), tmp.toFloat, hum.toFloat)
       Logger.debug(s"read from sensor: $m")
       Some(m)
