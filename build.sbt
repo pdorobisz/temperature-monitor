@@ -28,8 +28,6 @@ javaOptions in Universal ++= Seq(
   //  "-J-Xmx1024m",
   //  "-J-Xms512m",
 
-  // Since play uses separate pidfile we have to provide it with a proper path name of the pid file must be play.pid
-  s"-Dpidfile.path=/var/run/${packageName.value}/play.pid",
   s"-Dconfig.file=/usr/share/${packageName.value}/conf/production.conf",
   s"-Dapp.home=/usr/share/${packageName.value}",
   s"-Dlogdir=/var/log/${packageName.value}"
