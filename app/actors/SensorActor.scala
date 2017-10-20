@@ -17,7 +17,7 @@ class SensorActor @Inject()(config: Configuration) extends Actor {
   private val sensorCommand = "%s%s %s".format(
     config.getOptional[String]("app.home").map(_ + "/bin/").getOrElse(""),
     config.get[String]("app.sensor.command"),
-    config.get[String]("app.sensor.pin"))
+    config.getOptional[String]("app.sensor.pin").getOrElse(""))
 
   override def receive: Receive = {
     case Tick =>
