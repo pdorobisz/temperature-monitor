@@ -1,13 +1,15 @@
-package models
+package views
 
 import java.text.SimpleDateFormat
 import java.util.Date
 
-case class ReadingView(timestamp: String, temperature: String, humidity: String)
+import models.SensorReading
 
-object ReadingView {
+case class SensorReadingView(timestamp: String, temperature: String, humidity: String)
 
-  def apply(r: SensorReading): ReadingView = ReadingView(
+object SensorReadingView {
+
+  def apply(r: SensorReading): SensorReadingView = SensorReadingView(
     timestamp = new SimpleDateFormat("dd.MM.YYY HH:mm:ss").format(new Date(r.timestamp)),
     temperature = r.temperature.toString,
     humidity = r.humidity.toString

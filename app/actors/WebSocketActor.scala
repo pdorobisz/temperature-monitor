@@ -4,8 +4,9 @@ import javax.inject.Inject
 
 import akka.actor.{Actor, ActorRef, Props}
 import akka.util.Timeout
-import models.{ReadingView, SensorReading}
+import models.SensorReading
 import play.api.Logger
+import views.SensorReadingView
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -25,7 +26,7 @@ class WebSocketActor @Inject()(id: String, out: ActorRef)(implicit ec: Execution
   }
 
   override def receive: Receive = {
-    case r: SensorReading => out ! ReadingView(r)
+    case r: SensorReading => out ! SensorReadingView(r)
     case s: String => Logger.warn(s"received message: $s")
   }
 }

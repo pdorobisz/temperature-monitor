@@ -1,4 +1,5 @@
-@(values: Option[ReadingView])(implicit r: Request[_])
+@import views.SensorReadingView
+@(values: Option[SensorReadingView])(implicit r: Request[_])
 
 @main("Current temperature and humidity") {
     <h1>Current readings</h1>
