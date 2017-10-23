@@ -2,11 +2,11 @@ package actors
 
 import javax.inject.Inject
 
-import actors.SensorActor.{Measurement, Read}
+import actors.SensorActor.Read
 import akka.actor.{Actor, ActorRef, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
-import models.ReadingView
+import models.{ReadingView, SensorReading}
 import play.api.Logger
 
 import scala.concurrent.duration._
@@ -17,7 +17,7 @@ class WebSocketActor @Inject()(id: String, sensorActor: ActorRef, out: ActorRef)
   private implicit val timeout: Timeout = 5.seconds
 
   override def preStart: Unit = {
-    context.system.eventStream.subscribe(self, classOf[Measurement])
+    context.system.eventStream.subscribe(self, classOf[SensorReading])
     Logger.debug(s"webSocket actor $id started")
   }
 
@@ -27,10 +27,10 @@ class WebSocketActor @Inject()(id: String, sensorActor: ActorRef, out: ActorRef)
   }
 
   override def receive: Receive = {
-    case m: Measurement =>
-      out ! ReadingView(m)
+    case r: SensorReading =>
+      out ! ReadingView(r)
     case WebSocketActor.ClientCommand("GET_LATEST_MEASUREMENT") =>
-      val future: Future[Option[Measurement]] = (sensorActor ? Read).mapTo[Option[Measurement]]
+      val future: Future[Option[SensorReading]] = (sensorActor ? Read).mapTo[Option[SensorReading]]
       future.map(_.get) pipeTo out
     case WebSocketActor.ClientCommand(c) =>
       Logger.warn(s"unknown command: $c")

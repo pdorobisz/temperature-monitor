@@ -2,10 +2,10 @@ package actors
 
 import javax.inject.Inject
 
-import actors.SensorActor.Measurement
 import akka.actor.Actor
 import com.paulgoldbaum.influxdbclient.Parameter.Precision
 import com.paulgoldbaum.influxdbclient.{InfluxDB, Point}
+import models.SensorReading
 import play.api.{Configuration, Logger}
 
 import scala.concurrent.ExecutionContext
@@ -18,10 +18,10 @@ class InfluxDbActor @Inject()(config: Configuration)(implicit ec: ExecutionConte
   private val influxDbDatabase = config.get[String]("app.influxDb.database")
 
   override def preStart: Unit = if (config.get[Boolean]("app.influxDb.enable"))
-    context.system.eventStream.subscribe(self, classOf[Measurement])
+    context.system.eventStream.subscribe(self, classOf[SensorReading])
 
   override def receive: Receive = {
-    case Measurement(timestamp, temperature, humidity) =>
+    case SensorReading(timestamp, temperature, humidity) =>
       writeToInfluxDb(timestamp, temperature, humidity)
   }
 

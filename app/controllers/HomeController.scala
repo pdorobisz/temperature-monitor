@@ -2,14 +2,13 @@ package controllers
 
 import javax.inject._
 
-import actors.SensorActor.Measurement
 import actors.WebSocketActor.ClientCommand
 import actors.{SensorActor, WebSocketActor}
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
 import akka.stream.Materializer
 import akka.util.Timeout
-import models.ReadingView
+import models.{ReadingView, SensorReading}
 import play.api.libs.json.Json
 import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
@@ -30,7 +29,7 @@ class HomeController @Inject()(cc: ControllerComponents, @Named("sensor-actor") 
   private implicit val timeout: Timeout = 5.seconds
 
   def index: Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
-    (sensorActor ? SensorActor.Read).mapTo[Option[Measurement]].map { m =>
+    (sensorActor ? SensorActor.Read).mapTo[Option[SensorReading]].map { m =>
       val r = m.map(ReadingView.apply)
       Ok(views.html.index(r))
     }
