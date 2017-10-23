@@ -9,6 +9,7 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
 import akka.stream.Materializer
 import akka.util.Timeout
+import models.ReadingView
 import play.api.libs.json.Json
 import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
@@ -22,19 +23,20 @@ class HomeController @Inject()(cc: ControllerComponents, @Named("sensor-actor") 
                               (implicit ec: ExecutionContext, system: ActorSystem, mat: Materializer)
   extends AbstractController(cc) {
 
+  // TODO why so many implicits?
   private implicit val inEventFormat = Json.format[ClientCommand]
-  private implicit val outEventFormat = Json.format[Measurement]
-  private implicit val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[ClientCommand, Measurement]
+  private implicit val outEventFormat = Json.format[ReadingView]
+  private implicit val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[ClientCommand, ReadingView]
   private implicit val timeout: Timeout = 5.seconds
 
   def index: Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
     (sensorActor ? SensorActor.Read).mapTo[Option[Measurement]].map { m =>
-      val s = m.map(m => s"time: ${m.timestamp}, temperature: ${m.temperature}, humidity: ${m.humidity}").getOrElse("data not available yet")
-      Ok(views.html.index(s))
+      val r = m.map(ReadingView.apply)
+      Ok(views.html.index(r))
     }
   }
 
-  def ws: WebSocket = WebSocket.accept[ClientCommand, Measurement] { request =>
+  def ws: WebSocket = WebSocket.accept[ClientCommand, ReadingView] { request =>
     ActorFlow.actorRef { out =>
       WebSocketActor.props(request.id.toString, sensorActor, out, ec)
     }

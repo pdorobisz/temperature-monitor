@@ -1,6 +1,24 @@
-@(values: String)(implicit r: Request[_])
+@(values: Option[ReadingView])(implicit r: Request[_])
 
-@main("Measurements") {
-  <h1>Current readings</h1>
-  <div>@values</div>
+@main("Current temperature and humidity") {
+    <h1>Current readings</h1>
+
+    <div id="readings" class="hidden-@values.isEmpty">
+        <table>
+            <tr>
+                <td>time:</td>
+                <td><span id="timestamp-value">@values.map(_.timestamp).getOrElse("")</span></td>
+            </tr>
+            <tr>
+                <td>temperature:</td>
+                <td><span id="temperature-value">@values.map(_.temperature).getOrElse("")</span>C</td>
+            </tr>
+            <tr>
+                <td>humidity:</td>
+                <td><span id="humidity-value">@values.map(_.humidity).getOrElse("")</span>%</td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="no-data-msg" class="hidden-@values.isDefined">data not available yet</div>
 }

@@ -6,6 +6,7 @@ import actors.SensorActor.{Measurement, Read}
 import akka.actor.{Actor, ActorRef, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
+import models.ReadingView
 import play.api.Logger
 
 import scala.concurrent.duration._
@@ -27,7 +28,7 @@ class WebSocketActor @Inject()(id: String, sensorActor: ActorRef, out: ActorRef)
 
   override def receive: Receive = {
     case m: Measurement =>
-      out ! m
+      out ! ReadingView(m)
     case WebSocketActor.ClientCommand("GET_LATEST_MEASUREMENT") =>
       val future: Future[Option[Measurement]] = (sensorActor ? Read).mapTo[Option[Measurement]]
       future.map(_.get) pipeTo out
@@ -40,6 +41,7 @@ object WebSocketActor {
 
   def props(id: String, sensorActor: ActorRef, out: ActorRef, ec: ExecutionContext) = Props(new WebSocketActor(id, sensorActor, out)(ec))
 
+  // TODO don't need it
   case class ClientCommand(command: String)
 
 }

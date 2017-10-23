@@ -1,0 +1,11 @@
+div {
+    color: green;
+}
+
+div.hidden-true {
+    display: none;
+}
+
+div.hidden-false {
+    display: block;
+}
