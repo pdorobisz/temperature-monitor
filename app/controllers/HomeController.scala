@@ -2,7 +2,6 @@ package controllers
 
 import javax.inject._
 
-import actors.WebSocketActor.ClientCommand
 import actors.{SensorActor, WebSocketActor}
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
@@ -22,10 +21,8 @@ class HomeController @Inject()(cc: ControllerComponents, @Named("sensor-actor") 
                               (implicit ec: ExecutionContext, system: ActorSystem, mat: Materializer)
   extends AbstractController(cc) {
 
-  // TODO why so many implicits?
-  private implicit val inEventFormat = Json.format[ClientCommand]
-  private implicit val outEventFormat = Json.format[ReadingView]
-  private implicit val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[ClientCommand, ReadingView]
+  private implicit val outputFormat = Json.format[ReadingView]
+  private implicit val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[String, ReadingView]
   private implicit val timeout: Timeout = 5.seconds
 
   def index: Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
@@ -35,9 +32,9 @@ class HomeController @Inject()(cc: ControllerComponents, @Named("sensor-actor") 
     }
   }
 
-  def ws: WebSocket = WebSocket.accept[ClientCommand, ReadingView] { request =>
+  def ws: WebSocket = WebSocket.accept[String, ReadingView] { request =>
     ActorFlow.actorRef { out =>
-      WebSocketActor.props(request.id.toString, sensorActor, out, ec)
+      WebSocketActor.props(request.id.toString, out, ec)
     }
   }
 }
