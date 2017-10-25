@@ -16,6 +16,7 @@ class InfluxDbActor @Inject()(config: Configuration)(implicit ec: ExecutionConte
   private val influxDbHost = config.get[String]("app.influxDb.host")
   private val influxDbPort = config.get[Int]("app.influxDb.port")
   private val influxDbDatabase = config.get[String]("app.influxDb.database")
+  private val sensorName = config.get[String]("app.sensor.name")
 
   override def preStart: Unit = if (config.get[Boolean]("app.influxDb.enable"))
     context.system.eventStream.subscribe(self, classOf[SensorReading])
@@ -29,7 +30,7 @@ class InfluxDbActor @Inject()(config: Configuration)(implicit ec: ExecutionConte
     val influxDb = InfluxDB.connect(influxDbHost, influxDbPort)
     val database = influxDb.selectDatabase(influxDbDatabase)
     val point = Point("temperature-humidity")
-      .addTag("sensor", "sensor1")
+      .addTag("sensor", sensorName)
       .addField("tmp", temperature)
       .addField("hum", humidity)
     val f = database.write(point, precision = Precision.MILLISECONDS)
