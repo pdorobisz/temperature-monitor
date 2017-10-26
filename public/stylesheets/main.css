@@ -1,5 +1,18 @@
-div {
-    color: green;
+table {
+    border-collapse: collapse;
+}
+
+tr {
+    border-bottom: 1px solid #ddd;
+}
+
+td:nth-child(1) {
+    font-weight: bold;
+    background-color: #f2f2f2
+}
+
+td:nth-child(2) {
+    padding-left: 10px;
 }
 
 div.hidden-true {
@@ -8,4 +21,9 @@ div.hidden-true {
 
 div.hidden-false {
     display: block;
+}
+
+#no-data-msg {
+    color: #9F6000;
+    background-color: #FEEFB3;
 }
