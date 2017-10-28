@@ -2,9 +2,11 @@
 @(values: Option[SensorReadingView])(implicit r: Request[_])
 
 @main("Current temperature and humidity") {
-    <h1>Current readings</h1>
+    <h1>Sensor readings</h1>
 
-    <div id="readings" class="hidden-@values.isEmpty">
+    <div id="connection-error-msg" class="hidden error-msg">Connection lost. Trying to reconnect...</div>
+
+    <div id="readings" class="@{if(values.isEmpty) "hidden"}">
         <table>
             <tr>
                 <td>time:</td>
@@ -21,5 +23,5 @@
         </table>
     </div>
 
-    <div class="hidden-@values.isDefined"><span id="no-data-msg">data not available yet</span></div>
+    <div id="no-data-msg" class="@{if(values.isDefined) "hidden"}">data not available yet</div>
 }
