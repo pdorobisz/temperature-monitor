@@ -11,7 +11,7 @@ import views.SensorReadingView
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-class WebSocketActor @Inject()(id: String, sensorActor: ActorRef, out: ActorRef)(implicit ec: ExecutionContext) extends Actor {
+class WebSocketActor @Inject()(id: String, cacheActor: ActorRef, out: ActorRef)(implicit ec: ExecutionContext) extends Actor {
 
   import WebSocketActor._
 
@@ -29,9 +29,8 @@ class WebSocketActor @Inject()(id: String, sensorActor: ActorRef, out: ActorRef)
   }
 
   override def receive: Receive = {
-    case o: Option[SensorReading] => o.foreach(sendToWebSocket)
     case r: SensorReading => sendToWebSocket(r)
-    case ClientCommand("GET_LATEST_READINGS") => sensorActor ! SensorActor.Read
+    case ClientCommand("GET_LATEST_READINGS") => cacheActor ! MeasurementCacheActor.GetReading
     case ClientCommand(c) => Logger.warn(s"received unknown command: $c")
   }
 
@@ -44,7 +43,7 @@ class WebSocketActor @Inject()(id: String, sensorActor: ActorRef, out: ActorRef)
 
 object WebSocketActor {
 
-  def props(id: String, sensorActor: ActorRef, out: ActorRef, ec: ExecutionContext) = Props(new WebSocketActor(id, sensorActor, out)(ec))
+  def props(id: String, cacheActor: ActorRef, out: ActorRef, ec: ExecutionContext) = Props(new WebSocketActor(id, cacheActor, out)(ec))
 
   case class ClientCommand(command: String)
 

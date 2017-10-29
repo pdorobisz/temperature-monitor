@@ -14,19 +14,15 @@ class SensorActor @Inject()(config: Configuration) extends Actor {
 
   import sys.process._
 
-  private var lastReading: Option[SensorReading] = None
   private val sensorCommand = "%s%s %s".format(
     config.getOptional[String]("app.home").map(_ + "/bin/").getOrElse(""),
     config.get[String]("app.sensor.command"),
     config.getOptional[String]("app.sensor.pin").getOrElse(""))
 
   override def receive: Receive = {
-    case Tick =>
-      readSensor().foreach { currentReading =>
-        lastReading = Some(currentReading)
-        context.system.eventStream.publish(currentReading)
-      }
-    case Read => sender ! lastReading
+    case Tick => readSensor().foreach { currentReading =>
+      context.system.eventStream.publish(currentReading)
+    }
   }
 
   private def readSensor(): Option[SensorReading] = Try(sensorCommand.!!) match {
@@ -52,7 +48,5 @@ class SensorActor @Inject()(config: Configuration) extends Actor {
 object SensorActor {
 
   case object Tick
-
-  case object Read
 
 }

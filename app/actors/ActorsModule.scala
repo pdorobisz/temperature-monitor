@@ -5,6 +5,7 @@ import play.api.libs.concurrent.AkkaGuiceSupport
 
 class ActorsModule extends AbstractModule with AkkaGuiceSupport {
   override def configure(): Unit = {
+    bindActor[MeasurementCacheActor]("measurement-cache-actor")
     bindActor[SensorActor]("sensor-actor")
     bindActor[InfluxDbActor]("influxdb-actor")
   }
