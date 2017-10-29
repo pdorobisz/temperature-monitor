@@ -2,6 +2,7 @@ package controllers
 
 import javax.inject._
 
+import actors.WebSocketActor.ClientCommand
 import actors.{SensorActor, WebSocketActor}
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
@@ -22,8 +23,9 @@ class HomeController @Inject()(cc: ControllerComponents, @Named("sensor-actor") 
                               (implicit ec: ExecutionContext, system: ActorSystem, mat: Materializer)
   extends AbstractController(cc) {
 
+  private implicit val inputFormat = Json.format[ClientCommand]
   private implicit val outputFormat = Json.format[SensorReadingView]
-  private implicit val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[String, SensorReadingView]
+  private implicit val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[ClientCommand, SensorReadingView]
   private implicit val timeout: Timeout = 5.seconds
 
   def index: Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
@@ -33,9 +35,9 @@ class HomeController @Inject()(cc: ControllerComponents, @Named("sensor-actor") 
     }
   }
 
-  def ws: WebSocket = WebSocket.accept[String, SensorReadingView] { request =>
+  def ws: WebSocket = WebSocket.accept[ClientCommand, SensorReadingView] { request =>
     ActorFlow.actorRef { out =>
-      WebSocketActor.props(request.id.toString, out, ec)
+      WebSocketActor.props(request.id.toString, sensorActor, out, ec)
     }
   }
 }

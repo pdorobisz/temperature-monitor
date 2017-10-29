@@ -8,12 +8,13 @@ $(function () {
             var data = JSON.parse(message.data);
             $("#readings").removeClass("hidden");
             $("#no-data-msg").addClass("hidden");
-            $("#timestamp-value").text(data.timestamp);
+            $("#timestamp-value").text(data.date);
             $("#temperature-value").text(data.temperature);
             $("#humidity-value").text(data.humidity);
         };
         webSocket.onopen = function () {
             $("#connection-error-msg").addClass("hidden");
+            webSocket.send(JSON.stringify({'command': 'GET_LATEST_READINGS'}));
         };
         webSocket.onclose = function () {
             $("#connection-error-msg").removeClass("hidden");
