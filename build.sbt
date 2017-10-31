@@ -37,3 +37,7 @@ linuxPackageMappings += {
   val file = sourceDirectory.value / "debian" / "package"
   packageDirectoryAndContentsMapping((file, s"/usr/share/${packageName.value}"))
 }
+
+mappings in Universal := (mappings in Universal).value.filter { case (_, fileName) =>
+  !fileName.endsWith(".md")
+}
