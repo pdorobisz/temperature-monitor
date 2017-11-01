@@ -34,8 +34,13 @@ javaOptions in Universal ++= Seq(
 )
 
 linuxPackageMappings += {
-  val file = sourceDirectory.value / "debian" / "package"
-  packageDirectoryAndContentsMapping((file, s"/usr/share/${packageName.value}"))
+  val file = sourceDirectory.value / "debian" / "package" / "bin"
+  packageDirectoryAndContentsMapping((file, s"/usr/share/${packageName.value}/bin")).withPerms("755")
+}
+
+linuxPackageMappings += {
+  val file = sourceDirectory.value / "debian" / "package" / "conf"
+  packageDirectoryAndContentsMapping((file, s"/usr/share/${packageName.value}/conf")).withPerms("644")
 }
 
 mappings in Universal := (mappings in Universal).value.filter { case (_, fileName) =>
