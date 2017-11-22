@@ -13,6 +13,7 @@ Following instructions tested on Raspberry Pi Zero.
 wget https://dl.influxdata.com/influxdb/releases/influxdb_1.3.5_armhf.deb
 sudo dpkg -i influxdb_1.3.5_armhf.deb
 sudo systemctl start influxd
+curl -i -XPOST http://localhost:8086/query --data-urlencode "q=CREATE DATABASE temperature"
 ```
 
 ### Grafana
@@ -29,22 +30,8 @@ sudo apt-get install grafana
 sudo systemctl start  grafana-server
 ```
 
-## Useful commands
+### Other
 
-### InfluxDB
+Set correct timezone on Raspberry Pi:
 
-After logging to Influx's command line client:
-
-`show databases`
-
-`use <database>`
-
-`show series`
-
-Using HTTP api:
-
-`curl -G 'http://localhost:8086/query?pretty=true' --data-urlencode "db=temperature" --data-urlencode "q=SELECT * FROM \"temperature-humidity\""`
-
-`curl -i -X POST http://localhost:8086/query --data-urlencode "q=DROP DATABASE temperature"`
-
-`curl -i -X POST http://localhost:8086/query --data-urlencode "q=CREATE DATABASE temperature"`
+`dpkg-reconfigure tzdata`
