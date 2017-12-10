@@ -150,7 +150,7 @@
             "thresholds": [],
             "timeFrom": null,
             "timeShift": null,
-            "title": "Temperature and humidity",
+            "title": "Sensor readings",
             "tooltip": {
               "shared": true,
               "sort": 0,
