@@ -1,13 +1,41 @@
 # Temperature and humidity monitor for Raspberry Pi
 
 Uses DHT22 sensor connected to Raspberry Pi's GPIO ports to read temperature and humidity values.
-Measurements can be stored in Influx DB and Grafana can be used to display collected data.
+Measurements can be stored in InfluxDB and Grafana can be used to display collected data.
 
-## Build
+## Building application
 
 Use following command to build Debian package with temperature monitor application:
 
 `sbt debian:packageBin`
+
+## Development
+
+Temperature monitor is a Play application and can be run locally with following command: `sbt run`.
+
+There's `docker-compose.yml` file provided to run local instance of InfluxDB for testing. Use following command to run it:
+
+`docker-compose up`
+ 
+You can also completely disable InfluxDB integration by setting `app.influxDb.enable` property to `false`.
+
+To mock sensor provide script simulating sensor reading with `app.sensor.command` property. Such command should print single
+line to stdout:
+
+`<temperature> <humidity>`
+ 
+ Alternatively use settings similar to this:
+
+```
+app {
+  sensor {
+    #pin = 22 # disabled!
+    command = "echo 22.3 67.5"
+    ...
+  }
+...
+}
+```
 
 ## Installation and configuration
 
@@ -20,7 +48,7 @@ https://github.com/adafruit/Adafruit_Python_DHT
 
 Following figure shows Pi's pin numbers: https://webofthings.org/wp-content/uploads/2016/10/pi-gpio.png
 
-### Influx DB
+### InfluxDB
 
 Skip this section if you don't want to store readings in database. 
 
@@ -42,7 +70,7 @@ Create new database:
 
 ### Grafana
 
-Skip if you're not installing Influx DB or you're not planning to use dashboards to view readings.
+Skip if you're not installing InfluxDB or you're not planning to use dashboards to view readings.
 
 **Installation**
 
@@ -63,7 +91,7 @@ sudo systemctl start  grafana-server
 **Configuration**
 
 Login to Grafana (http://raspberrypi:3000) as `admin` (default password: "admin"), open side menu, click organisation name and select `API Keys` option.
-Create new api key, add it to `scripts/configureGrafana.sh` script in this repository and then execute it to create new Influx DB datasource and 
+Create new api key, add it to `scripts/configureGrafana.sh` script in this repository and then execute it to create new InfluxDB datasource and 
 new dashboard:
 
 ```
@@ -117,7 +145,7 @@ Configuration files are located in `/etc/temperature-monitor`. To change configu
 override in it configuration properties from `application.conf` and `production.conf`. Don't modify original files as
 you will lose your config when uninstalling/upgrading application.
 
-If you decided not to store readings you should disable Influx DB integration or you will see error messages in logs:
+If you decided not to store readings you should disable InfluxDB integration or you will see error messages in logs:
 
 ```
 app.influxDb.enable = false
