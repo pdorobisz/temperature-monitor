@@ -1,8 +1,8 @@
 @import views.SensorReadingView
-@(values: Option[SensorReadingView])(implicit r: Request[_])
+@(values: Option[SensorReadingView], graphConfig: GraphConfig)(implicit r: Request[_])
 
-@main("Current temperature and humidity") {
-    <h1>Sensor readings</h1>
+@main("Temperature and humidity monitor") {
+    <h1>Temperature and humidity monitor</h1>
 
     <div id="connection-error-msg" class="hidden error-msg">Connection lost. Trying to reconnect...</div>
 
@@ -24,4 +24,11 @@
     </div>
 
     <div id="no-data-msg" class="@{if(values.isDefined) "hidden"}">data not available yet</div>
+
+    @if(graphConfig.enable) {
+        <div>
+            <iframe src="@graphConfig.graphUrl" width="850" height="320" frameborder="0"></iframe>
+        </div>
+        <a href="@graphConfig.dashboardUrl" target="_blank">More details...</a>
+    }
 }

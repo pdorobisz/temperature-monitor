@@ -13,11 +13,13 @@ Use following command to build Debian package with temperature monitor applicati
 
 Temperature monitor is a Play application and can be run locally with following command: `sbt run`.
 
-There's `docker-compose.yml` file provided to run local instance of InfluxDB for testing. Use following command to run it:
+There's `docker-compose.yml` file provided to run local instances of Grafana and InfluxDB for testing.
+Use following command to run them:
 
 `docker-compose up`
  
 You can also completely disable InfluxDB integration by setting `app.influxDb.enable` property to `false`.
+Grafana integration can be disabled by setting `app.grafana.enable` property to `false`.
 
 To mock sensor provide script simulating sensor reading with `app.sensor.command` property. Such command should print single
 line to stdout:
@@ -149,6 +151,12 @@ If you decided not to store readings you should disable InfluxDB integration or 
 
 ```
 app.influxDb.enable = false
+```
+
+If you're not using Grafana then disable embedded graph:
+
+```
+app.grafana.enable = false
 ```
 
 When using different GPIO pin for sensor than default (22):
