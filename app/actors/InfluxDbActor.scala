@@ -15,6 +15,8 @@ class InfluxDbActor @Inject()(config: Configuration)(implicit ec: ExecutionConte
 
   private val influxDbHost = config.get[String]("app.influxDb.host")
   private val influxDbPort = config.get[Int]("app.influxDb.port")
+  private val influxDbUsername = config.getOptional[String]("app.influxDb.username").orNull
+  private val influxDbPassword = config.getOptional[String]("app.influxDb.password").orNull
   private val influxDbDatabase = config.get[String]("app.influxDb.database")
   private val sensorName = config.get[String]("app.sensor.name")
 
@@ -27,7 +29,7 @@ class InfluxDbActor @Inject()(config: Configuration)(implicit ec: ExecutionConte
   }
 
   private def writeToInfluxDb(timestamp: Long, temperature: Float, humidity: Float) = {
-    val influxDb = InfluxDB.connect(influxDbHost, influxDbPort)
+    val influxDb = InfluxDB.connect(influxDbHost, influxDbPort, influxDbUsername, influxDbPassword)
     val database = influxDb.selectDatabase(influxDbDatabase)
     val point = Point("temperature-humidity")
       .addTag("sensor", sensorName)

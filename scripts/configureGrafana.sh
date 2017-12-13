@@ -1,8 +1,12 @@
 #!/bin/bash
 
-# Configure API KEY and URL
+# Set correct API KEY and URL
 GRAFANA_API_KEY=eyJrIjoiU2ZDSkNpYVYzbVpBU3dtekFIYmhBckV0SktTUXdHM3AiLCJuIjoiYWRtaW5rZXkiLCJpZCI6MX0=
-GRAFANA_URL=localhost:3000
+GRAFANA_URL=raspberrypi:3000
+
+# Set correct username and password
+INFLUXDB_USERNAME=grafana
+INFLUXDB_PASSWORD=grafana
 
 echo "Creating Influx DB data source..."
 curl -H "Authorization: Bearer $GRAFANA_API_KEY"  \
@@ -13,8 +17,8 @@ curl -H "Authorization: Bearer $GRAFANA_API_KEY"  \
   "type":"influxdb",
   "url":"http://localhost:8086",
   "access":"proxy",
-  "user":"",
-  "password":"",
+  "user":"'$INFLUXDB_USERNAME'",
+  "password":"'$INFLUXDB_PASSWORD'",
   "database":"temperature",
   "basicAuth":false
 }'

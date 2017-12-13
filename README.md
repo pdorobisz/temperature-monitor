@@ -11,7 +11,9 @@ Use following command to build Debian package with temperature monitor applicati
 
 ## Development
 
-Temperature monitor is a Play application and can be run locally with following command: `sbt run`.
+Temperature monitor is a Play application and can be run locally with following command:
+
+`sbt run`
 
 There's `docker-compose.yml` file provided to run local instances of Grafana and InfluxDB for testing.
 Use following command to run them:
@@ -21,12 +23,12 @@ Use following command to run them:
 You can also completely disable InfluxDB integration by setting `app.influxDb.enable` property to `false`.
 Grafana integration can be disabled by setting `app.grafana.enable` property to `false`.
 
-To mock sensor provide script simulating sensor reading with `app.sensor.command` property. Such command should print single
-line to stdout:
+To mock sensor provide script simulating sensor reading via `app.sensor.command` property. Such command should print
+single line to stdout:
 
 `<temperature> <humidity>`
  
- Alternatively use settings similar to this:
+Alternatively use settings similar to this:
 
 ```
 app {
@@ -66,9 +68,43 @@ sudo systemctl start influxd
 
 **Configuration**
 
+By default authentication is disabled and anyone can access InfluxDB from anywhere. Following changes to configuration
+enable authentication and restrict database access to localhost only. They're optional but highly recommended.
+Add following settings to `/etc/influxdb/influxdb.conf` and restart `influxd` service when done:
+
+```
+[http]
+  # Determines whether HTTP endpoint is enabled.
+  # enabled = true
+
+  # The bind address used by the HTTP service.
+  bind-address = "127.0.0.1:8086"
+
+  # Determines whether user authentication is enabled over HTTP/HTTPS.
+  auth-enabled = true
+```
+
+Open InfluxDB client (`influx`) and create new admin user (skip this step if you chose not to enable authentication):
+
+`CREATE USER admin WITH PASSWORD 'admin' WITH ALL PRIVILEGES`
+
+Exit client and reopen it as admin:
+
+`influx -username admin -password admin`
+
 Create new database:
 
-`curl -i -XPOST http://localhost:8086/query --data-urlencode "q=CREATE DATABASE temperature"`
+`CREATE DATABASE temperature`
+
+If authentication is enabled create new users:
+
+```
+CREATE USER grafana WITH PASSWORD 'grafana'
+CREATE USER monitor WITH PASSWORD 'monitor'
+
+GRANT READ ON "temperature" TO "grafana"
+GRANT WRITE ON "temperature" TO "monitor"
+```
 
 ### Grafana
 
@@ -92,9 +128,11 @@ sudo systemctl start  grafana-server
 
 **Configuration**
 
-Login to Grafana (http://raspberrypi:3000) as `admin` (default password: "admin"), open side menu, click organisation name and select `API Keys` option.
-Create new api key, add it to `scripts/configureGrafana.sh` script in this repository and then execute it to create new InfluxDB datasource and 
-new dashboard:
+Login to Grafana (http://raspberrypi:3000) as `admin` (default password: "admin"), open side menu, click organisation
+name and select `API Keys` option, create new api key and add it to `scripts/configureGrafana.sh` script.
+You may also need to update InfluxDB credentials used by Grafana.
+
+Execute script to create new InfluxDB datasource and dashboard:
 
 ```
 cd scripts
@@ -153,13 +191,21 @@ If you decided not to store readings you should disable InfluxDB integration or 
 app.influxDb.enable = false
 ```
 
-If you're not using Grafana then disable embedded graph:
+Otherwise make sure that provided InfluxDB credentials are correct (if authentication is disabled you don't have to
+change anything as InfluxDB will ignore all provided credentials):
+
+```
+app.influxDb.username = <USERNAME>
+app.influxDb.password = <PASSWORD>
+```
+
+Disable embedded graph if you're not using Grafana:
 
 ```
 app.grafana.enable = false
 ```
 
-When using different GPIO pin for sensor than default (22):
+When using different GPIO pin for sensor than default (22) update it in the config:
 
 ```
 app.sensor.pin = <PIN NUMBER>
