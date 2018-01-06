@@ -217,6 +217,13 @@ Set correct timezone on Raspberry Pi:
 
 `dpkg-reconfigure tzdata`
 
+Enable time synchronization:
+
+```
+sudo timedatectl set-ntp 1
+sudo timedatectl set-local-rtc 0
+```
+
 ## Usage
 
 Open http://raspberrypi:9000/
